@@ -368,7 +368,7 @@ export default function OrderTracking() {
                   <div className="mt-2 ml-18">
                     {reviewed[item.id] ? (
                       <span className="inline-flex items-center gap-1 text-xs
-                                       text-primary font-semibold">
+                                       text-primary font-semibold p-2 border rounded-lg">
                         ✅ You reviewed this product
                       </span>
                     ) : (
@@ -378,7 +378,7 @@ export default function OrderTracking() {
                                    font-semibold text-neutral-slate
                                    hover:text-primary transition-colors
                                    border border-gray-200 hover:border-primary
-                                   px-3 py-1.5 rounded-lg"
+                                   px-3 py-1.5 rounded-lg p-2  "
                       >
                         ⭐ Leave a Review
                       </button>
@@ -457,9 +457,10 @@ export default function OrderTracking() {
               <h2 className="text-xl font-bold text-brand-charcoal">
                 Leave a Review
               </h2>
-              <button onClick={() => setReviewModal(null)}
+              <button onClick={() => !submitting && setReviewModal(null)}
+                disabled={submitting}
                 className="text-neutral-slate hover:text-brand-charcoal
-                           text-xl transition-colors">
+                           text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 ✕
               </button>
             </div>
@@ -523,9 +524,10 @@ export default function OrderTracking() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setReviewModal(null)}
+              <button onClick={() => !submitting && setReviewModal(null)}
+                disabled={submitting}
                 className="flex-1 border border-gray-300 text-neutral-slate
-                           py-3 rounded-xl font-semibold text-sm">
+                           py-3 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 Cancel
               </button>
               <button

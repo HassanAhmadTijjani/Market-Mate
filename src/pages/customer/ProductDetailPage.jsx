@@ -50,14 +50,20 @@ const ProductDetailPage = () => {
     useEffect(() => {
         if (product) {
             setActiveImage(product.cover_image)
-            // load reviews
+            setReviewsLoading(true)
             fetchProductReviews(product.id)
                 .then(data => {
-                    setReviews(data)
-                    if (data.length > 0) {
+                    setReviews(data || [])
+                    if (data && data.length > 0) {
                         const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length
                         setAvgRating(Math.round(avg * 10) / 10)
+                    } else {
+                        setAvgRating(0)
                     }
+                })
+                .catch(() => {
+                    setReviews([])
+                    setAvgRating(0)
                 })
                 .finally(() => setReviewsLoading(false))
         }

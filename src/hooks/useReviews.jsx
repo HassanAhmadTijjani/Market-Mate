@@ -49,7 +49,6 @@ export function useReviews() {
     // guarantees no duplicates even with concurrent submissions
     async function submitReview({ productId, orderId, rating, comment }) {
         if (!user) throw new Error('You must be logged in to review')
-
         const { error } = await supabase
             .from('reviews')
             .insert({
@@ -57,7 +56,7 @@ export function useReviews() {
                 customer_id: user.id,
                 order_id: orderId,
                 rating,
-                comment: comment.trim(),
+                comment: comment?.trim() || null,
                 is_approved: true,
             })
 

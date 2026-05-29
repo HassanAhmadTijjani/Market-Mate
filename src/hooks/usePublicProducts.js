@@ -26,11 +26,15 @@ const usePublicProducts = () => {
         if (!error && data) {
             // fetch review stats for all products in one query
             const productIds = data.map(p => p.id)
-            const { data: reviewData } = await supabase
-                .from('reviews')
-                .select('product_id, rating')
-                .in('product_id', productIds)
-                .eq('is_approved', true)
+            let reviewData = []
+            if (productIds.length > 0) {
+                const { data: fetchedReviews } = await supabase
+                    .from('reviews')
+                    .select('product_id, rating')
+                    .in('product_id', productIds)
+                    .eq('is_approved', true)
+                if (fetchedReviews) reviewData = fetchedReviews
+            }
 
             // calculate avg rating per product
             const ratingMap = {}
