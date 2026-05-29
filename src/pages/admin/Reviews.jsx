@@ -14,9 +14,14 @@ export default function Reviews() {
 
     async function load() {
         setLoading(true)
-        const data = await fetchAllReviews()
-        setReviews(data)
-        setLoading(false)
+        try {
+            const data = await fetchAllReviews()
+            setReviews(data)
+        } catch (err) {
+            toast.error(err.message || 'Failed to load reviews')
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => { load() }, [])
