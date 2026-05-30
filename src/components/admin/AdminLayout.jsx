@@ -15,6 +15,8 @@ const AdminLayout = ({ children }) => {
         // { label: 'Analytics', to: '/admin/analytics', icon: '📈', superOnly: true },
         { label: 'Settings', to: '/admin/settings', icon: '⚙️', superOnly: true },
         { label: 'Reviews', to: '/admin/reviews', icon: '⭐', superOnly: false },
+        { label: 'Flash Sales', to: '/admin/flash-sales', icon: '⚡', superOnly: false },
+
       ]
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const { profile, logout } = useAuth()

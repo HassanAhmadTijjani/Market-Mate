@@ -1,41 +1,45 @@
 // @ts-nocheck
 
 /* eslint-disable react-hooks/static-components */
+import { lazy, Suspense } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/common/ProtectedRoute'
-import Login from './pages/auth/Login'
-import Register from './pages/auth/Register'
-import ForgotPassword from './pages/auth/ForgotPassword'
 import Layout from './components/common/Layout'
-import CustomerHome from './pages/customer/CustomerHome'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import StaffDashboard from './pages/staff/StaffDashboard'
-import Products from './pages/admin/Products'
-import AddProduct from './pages/admin/AddProduct'
-import EditProduct from './pages/admin/EditProducts'
-import Shop from './pages/customer/Shop'
-import ProductDetailPage from './pages/customer/ProductDetailPage'
-import Cart from './pages/customer/Cart'
-import Checkout from './pages/customer/Checkout'
-import OrderDetail from './pages/admin/OrderDetail'
-import Orders from './pages/admin/Orders'
-import MyOrders from './pages/customer/MyOrders'
-import OrderTracking from './pages/customer/OrderTracking'
-import StaffOrders from './pages/staff/StaffOrders'
-import StaffPos from './pages/staff/StaffPos'
-import Customer from './pages/admin/Customer'
-import LandingPage from './pages/customer/LandingPage'
-import About from './pages/customer/About'
-import Staff from './pages/admin/Staff'
-import PromoCodes from './pages/admin/PromoCodes'
-import Analytics2 from './pages/admin/Analytics'
-import Settings from './pages/admin/Settings'
 import { Analytics } from "@vercel/analytics/react"
 import WhatsappFloat from './components/common/WhatsappFloat'
-import Profile from './pages/customer/Profile'
-import Reviews from './pages/admin/Reviews'
+
+// Lazy loaded components
+const Login = lazy(() => import('./pages/auth/Login'))
+const Register = lazy(() => import('./pages/auth/Register'))
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
+const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const StaffDashboard = lazy(() => import('./pages/staff/StaffDashboard'))
+const Products = lazy(() => import('./pages/admin/Products'))
+const AddProduct = lazy(() => import('./pages/admin/AddProduct'))
+const EditProduct = lazy(() => import('./pages/admin/EditProducts'))
+const Shop = lazy(() => import('./pages/customer/Shop'))
+const ProductDetailPage = lazy(() => import('./pages/customer/ProductDetailPage'))
+const Cart = lazy(() => import('./pages/customer/Cart'))
+const Checkout = lazy(() => import('./pages/customer/Checkout'))
+const OrderDetail = lazy(() => import('./pages/admin/OrderDetail'))
+const Orders = lazy(() => import('./pages/admin/Orders'))
+const MyOrders = lazy(() => import('./pages/customer/MyOrders'))
+const OrderTracking = lazy(() => import('./pages/customer/OrderTracking'))
+const StaffOrders = lazy(() => import('./pages/staff/StaffOrders'))
+const StaffPos = lazy(() => import('./pages/staff/StaffPos'))
+const Customer = lazy(() => import('./pages/admin/Customer'))
+const LandingPage = lazy(() => import('./pages/customer/LandingPage'))
+const About = lazy(() => import('./pages/customer/About'))
+const Staff = lazy(() => import('./pages/admin/Staff'))
+const PromoCodes = lazy(() => import('./pages/admin/PromoCodes'))
+const Analytics2 = lazy(() => import('./pages/admin/Analytics'))
+const Settings = lazy(() => import('./pages/admin/Settings'))
+const Profile = lazy(() => import('./pages/customer/Profile'))
+const Reviews = lazy(() => import('./pages/admin/Reviews'))
+const FlashSales = lazy(() => import('./pages/admin/FlashSales'))
 
 
 // function Home() { return <h1 className="p-8 text-2xl font-bold text-primary">🏠 Customer Home</h1> }
@@ -58,7 +62,12 @@ const App = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <Routes>
+      <Suspense fallback={
+        <div className="h-screen w-full flex items-center justify-center bg-neutral-light">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      }>
+        <Routes>
         <Route path="/about" element={<Layout><About /></Layout>} />
         <Route path="/login" element={<RedirectIfLoggedIn><Login /></RedirectIfLoggedIn>} />
         <Route path="/register" element={<RedirectIfLoggedIn><Register /></RedirectIfLoggedIn>} />
@@ -165,6 +174,11 @@ const App = () => {
             <Reviews />
           </ProtectedRoute>
         } />
+        <Route path="/admin/flash-sales" element={
+          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+            <FlashSales />
+          </ProtectedRoute>
+        } />
         <Route path="/admin/staff" element={
           <ProtectedRoute allowedRoles={['super_admin']}>
             <Staff />
@@ -202,7 +216,8 @@ const App = () => {
         } />
 
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
       <WhatsappFloat />
       <Analytics />
     </>
