@@ -8,6 +8,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, X, SlidersHorizontal, ChevronDown, PackageSearch, Zap, TrendingUp, Eye } from 'lucide-react';
 import usePublicProducts from '../../hooks/usePublicProducts';
 import ProductCard from '../../components/customer/ProductCard';
+import FlashSaleBanner from '../../components/shop/FlashSaleBanner'
+import ScrollOffer from '../../components/shop/ScrollOffer'
+import SocialProof from '../../components/shop/SocialProof'
+import { useFlashSales } from '../../hooks/useFlashSales'
+import useSettings from '../../hooks/useSettings'
 
 const Shop = () => {
     const { products, loading, categories, fetchProducts } = usePublicProducts();
@@ -15,36 +20,39 @@ const Shop = () => {
     const [categoryId, setCategoryId] = useState('');
     const [priceRange, setPriceRange] = useState('');
     const [isFilterOpen, setIsFilterOpen] = useState(false); // For mobile filter toggle
+    // Flash Sales
+    const { flashSales, fetchActiveSales } = useFlashSales()
+    const { settings } = useSettings()
 
     // --- ADDICTIVE FEATURE: Live Activity State ---
-    const [liveActivity, setLiveActivity] = useState(null);
-    const activities = [
-        "Someone in Lagos just viewed an iPhone 13 Pro",
-        "Someone in Kano just viewed an macbook 13 Pro",
-        "Someone in Abuja just grabbed a cheep product",
-        "New Vendor 'GadgetHub' just joined the platform!",
-        "Flash Sale: 5 people are looking at the latest Samsung S24",
-        "Flash Sale: 8 people just get their discount offer",
-        "Fastest Finger: 2 just got an offer",
-        "A user just used promo code 'WELCOME10'",
-        "Verified Seller 'MarketMate' just updated their stock"
-    ];
+    // const [liveActivity, setLiveActivity] = useState(null);
+    // const activities = [
+    //     "Someone in Lagos just viewed an iPhone 13 Pro",
+    //     "Someone in Kano just viewed an macbook 13 Pro",
+    //     "Someone in Abuja just grabbed a cheep product",
+    //     "New Vendor 'GadgetHub' just joined the platform!",
+    //     "Flash Sale: 5 people are looking at the latest Samsung S24",
+    //     "Flash Sale: 8 people just get their discount offer",
+    //     "Fastest Finger: 2 just got an offer",
+    //     "A user just used promo code 'WELCOME10'",
+    //     "Verified Seller 'MarketMate' just updated their stock"
+    // ];
 
-    useEffect(() => {
-        // Cycle through live activities every 7 seconds
-        const interval = setInterval(() => {
-            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-            setLiveActivity(randomActivity);
-            setTimeout(() => setLiveActivity(null), 4000); // Hide after 4 seconds
-        }, 8000);
-        return () => clearInterval(interval);
-    }, []);
+    // useEffect(() => {
+    //     // Cycle through live activities every 7 seconds
+    //     const interval = setInterval(() => {
+    //         const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+    //         setLiveActivity(randomActivity);
+    //         setTimeout(() => setLiveActivity(null), 4000); // Hide after 4 seconds
+    //     }, 8000);
+    //     return () => clearInterval(interval);
+    // }, []);
 
     const priceOptions = [
         { label: 'All price', min: '', max: '' },
         { label: 'Under ₦50,000', min: '', max: '50000' },
-        { label: '₦50,000 – ₦100,000', min: '50000', max: '100000' },
-        { label: '₦100,000 – ₦300,000', min: '100000', max: '300000' },
+        { label: '₦50,000 - ₦100,000', min: '50000', max: '100000' },
+        { label: '₦100,000 - ₦300,000', min: '100000', max: '300000' },
         { label: 'Above ₦300,000', min: '300000', max: '' },
     ];
 
@@ -69,9 +77,16 @@ const Shop = () => {
 
     return (
         <div className="min-h-screen bg-slate-50/50 relative">
+            {/* Flash Sale Banner — above everything */}
+            {settings?.flash_sales_enabled !== false && flashSales.length > 0 && (
+                <FlashSaleBanner
+                    flashSales={flashSales}
+                    onSaleExpire={fetchActiveSales}
+                />
+            )}
 
             {/* --- ADDICTIVE FEATURE: Live Pulse Toast --- */}
-            <AnimatePresence>
+            {/* <AnimatePresence>
                 {liveActivity && (
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
@@ -83,7 +98,7 @@ const Shop = () => {
                         <p className="text-xs font-medium">{liveActivity}</p>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence> */}
 
             {/* HEADER AREA */}
             <div className="bg-white border-b border-gray-100 sticky top-0 z-30 backdrop-blur-md">
@@ -256,6 +271,15 @@ const Shop = () => {
                     </main>
                 </div>
             </div>
+            <ScrollOffer
+                enabled={settings?.scroll_offer_enabled !== false}
+                threshold={settings?.scroll_offer_threshold || 8}
+            />
+
+            {/* Social Proof — bottom left notifications */}
+            <SocialProof
+                enabled={settings?.social_proof_enabled !== false}
+            />
         </div>
     );
 };

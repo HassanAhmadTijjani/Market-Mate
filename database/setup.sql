@@ -390,35 +390,40 @@ add column if not exists order_success_message text default 'Thank you for your 
 -- Drop the current open policy
 drop policy if exists "Anyone can read settings" on settings;
 -- Drop the old public view
-drop view if exists public_settings;
+drop view if exists public_settings cascade;
+drop view if exists customer_settings cascade;
 
 -- Recreate with two versions
 -- Public view (for guests/anonymous) — no bank details
-create or replace view public_settings as
+create view public_settings as
   select
     store_name, store_description, store_phone,
     store_email, store_address, business_hours,
-    logo_url, hero_badge_text, hero_cta_text,
-    stat_products, stat_customers, stat_deliveries,
-    why_choose_us, store_categories, currency_symbol,
-    whatsapp_number, instagram_url, twitter_url,
-    facebook_url, delivery_fee_lagos, delivery_fee_nigeria,
-    delivery_fee_outside, cart_expiry_days,
-    payment_instructions, order_success_message
-  from settings where id = 'store';
-
--- Customer view (for logged-in customers) — includes bank details
-create or replace view customer_settings as
-  select
-    store_name, store_description, store_phone,
-    store_email, store_address, business_hours,
-    logo_url, hero_badge_text, hero_cta_text,
+    logo_url, primary_color, hero_badge_text, hero_cta_text,
     stat_products, stat_customers, stat_deliveries,
     why_choose_us, store_categories, currency_symbol,
     whatsapp_number, instagram_url, twitter_url,
     facebook_url, delivery_fee_lagos, delivery_fee_nigeria,
     delivery_fee_outside, cart_expiry_days,
     payment_instructions, order_success_message,
+    flash_sales_enabled, scroll_offer_enabled, 
+    scroll_offer_threshold, social_proof_enabled
+  from settings where id = 'store';
+
+-- Customer view (for logged-in customers) — includes bank details
+create view customer_settings as
+  select
+    store_name, store_description, store_phone,
+    store_email, store_address, business_hours,
+    logo_url, primary_color, hero_badge_text, hero_cta_text,
+    stat_products, stat_customers, stat_deliveries,
+    why_choose_us, store_categories, currency_symbol,
+    whatsapp_number, instagram_url, twitter_url,
+    facebook_url, delivery_fee_lagos, delivery_fee_nigeria,
+    delivery_fee_outside, cart_expiry_days,
+    payment_instructions, order_success_message,
+    flash_sales_enabled, scroll_offer_enabled, 
+    scroll_offer_threshold, social_proof_enabled,
     -- ✅ Bank details included for paying customers
     bank_name, account_number, account_name
   from settings where id = 'store';
@@ -691,3 +696,36 @@ create or replace view public_profiles as
   from profiles;
 
 grant select on public_profiles to anon, authenticated;
+
+
+---------------------------------------------------
+-- Flash Sales
+---------------------------------------------------------
+-- Flash sales table
+create table flash_sales (
+  id             uuid primary key default gen_random_uuid(),
+  product_id     uuid references products(id) on delete cascade,
+  sale_price     numeric not null,
+  label          text default 'FLASH SALE',
+  starts_at      timestamptz not null default now(),
+  ends_at        timestamptz not null,
+  is_active      boolean default true,
+  created_at     timestamptz default now()
+);
+
+alter table flash_sales enable row level security;
+
+create policy "Anyone can read active flash sales"
+  on flash_sales for select
+  using (is_active = true and ends_at > now());
+
+create policy "Admin can manage flash sales"
+  on flash_sales for all
+  using (is_admin()) with check (is_admin());
+
+-- Add engagement settings
+alter table settings
+add column if not exists social_proof_enabled    boolean default true,
+add column if not exists scroll_offer_enabled    boolean default true,
+add column if not exists scroll_offer_threshold  integer default 8,
+add column if not exists flash_sales_enabled     boolean default true;
