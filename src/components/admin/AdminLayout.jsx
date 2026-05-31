@@ -1,8 +1,11 @@
 // @ts-nocheck
-import React, { useState } from 'react'
+
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import useSettings from '../../hooks/useSettings'
+import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useLocation } from 'react-router-dom'
 
 const AdminLayout = ({ children }) => {
     const navItems = [
@@ -13,12 +16,48 @@ const AdminLayout = ({ children }) => {
         { label: 'Staff', to: '/admin/staff', icon: '👨‍💼', superOnly: true },
         { label: 'Promo Codes', to: '/admin/promos', icon: '🎟️', superOnly: false },
         // { label: 'Analytics', to: '/admin/analytics', icon: '📈', superOnly: true },
-        { label: 'Settings', to: '/admin/settings', icon: '⚙️', superOnly: true },
         { label: 'Reviews', to: '/admin/reviews', icon: '⭐', superOnly: false },
         { label: 'Flash Sales', to: '/admin/flash-sales', icon: '⚡', superOnly: false },
+        { label: 'Settings', to: '/admin/settings', icon: '⚙️', superOnly: true },
 
       ]
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    // Admin Notification
+    const location = useLocation()
+    const [newOrderCount, setNewOrderCount] = useState(0)
+    const LAST_SEEN_KEY = 'admin_orders_last_seen'
+
+    // fetch new order count
+    async function fetchNewOrders() {
+        const lastSeen = localStorage.getItem(LAST_SEEN_KEY)
+        if (!lastSeen) {
+            // first time — set now and show 0
+            localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString())
+            return
+        }
+
+        const { count } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .gt('created_at', lastSeen)
+
+        setNewOrderCount(count || 0)
+    }
+
+    // clear badge when admin is on orders page
+    useEffect(() => {
+        if (location.pathname === '/admin/orders') {
+            localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString())
+            setNewOrderCount(0)
+        }
+    }, [location.pathname])
+
+    // poll every 30 seconds
+    useEffect(() => {
+        fetchNewOrders()
+        const interval = setInterval(fetchNewOrders, 30000)
+        return () => clearInterval(interval)
+    }, [])
     const { profile, logout } = useAuth()
     const navigate = useNavigate()
     const { settings } = useSettings()
@@ -86,7 +125,16 @@ const AdminLayout = ({ children }) => {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <span>{item.icon}</span>
-                            <span>{item.label}</span>
+                            <span className="flex-1">{item.label}</span>
+
+                            {/* ✅ New orders badge — only on Orders link */}
+                            {item.to === '/admin/orders' && newOrderCount > 0 && (
+                                <span className="ml-auto bg-green-500 text-white text-xs font-bold
+                       min-w-5 h-5 px-1.5 rounded-full flex items-center
+                       justify-center animate-pulse">
+                                    {newOrderCount > 99 ? '99+' : newOrderCount}
+                                </span>
+                            )}
                         </NavLink>
                     ))}
                 </nav>

@@ -3,11 +3,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { sendEmail } from '../utils/sendEmail'
+import { useReferral } from './useReferral'
+
 
 export function useOrders() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const { processReferralReward } = useReferral()
+
 
     const fetchOrders = useCallback(async (statusFilter = '') => {
         setLoading(true)
@@ -42,32 +46,26 @@ export function useOrders() {
         return data
       }, [])
 
-    async function updateOrderStatus(id, status) {
+    async function updateOrderStatus(orderId, newStatus, customerId) {
         const { error } = await supabase
             .from('orders')
-            .update({ status, updated_at: new Date().toISOString() })
-            .eq('id', id)
+            .update({
+                status: newStatus,
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', orderId)
 
         if (error) throw error
 
-        // Run promo usage logic
-        await supabase.rpc('handle_order_promo', { p_order_id: id })
-
-        // fetch the order to get customer email
-        const { data: order } = await supabase
-            .from('orders')
-            .select('*')
-            .eq('id', id)
-            .single()
-
-        if (order?.customer_email) {
-            await sendEmail('order_status_update', {
-                order,
-                newStatus: status,
-            })
+        // ✅ trigger referral reward when order delivered
+        if (newStatus === 'delivered' && customerId) {
+            await processReferralReward(customerId)
         }
 
-        await fetchOrders()
+        // send email notification
+        await sendEmail('order_status_update', {
+            order: { id: orderId, status: newStatus }
+        })
       }
 
     useEffect(() => { fetchOrders() }, [fetchOrders])

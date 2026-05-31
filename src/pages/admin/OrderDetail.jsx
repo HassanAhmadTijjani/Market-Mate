@@ -376,8 +376,7 @@ const OrderDetail = () => {
                 }
             }
 
-            await updateOrderStatus(id, newStatus)
-
+            await updateOrderStatus(id, newStatus, order.customer_id)
             setOrder({ ...order, status: newStatus })
 
             toast.success('Order status updated successfully')
@@ -644,16 +643,14 @@ const OrderDetail = () => {
                                     if (error) {
                                         toast.error('Failed to confirm payment: ' + error.message)
                                     } else {
-                                        // Trigger promo usage check
-                                        await supabase.rpc('handle_order_promo', { p_order_id: order.id })
                                         setOrder({ ...order, payment_status: 'paid' })
                                         toast.success('Payment confirmed!')
                                     }
                                 }}
                                 disabled={order.payment_status === 'paid'}
                                 className="flex-1 bg-primary hover:bg-primary-dark text-white
-                                py-2.5 rounded-lg font-semibold text-sm transition-all
-                                disabled:opacity-50 disabled:cursor-not-allowed"
+             py-2.5 rounded-lg font-semibold text-sm transition-all
+             disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {order.payment_status === 'paid'
                                     ? '✅ Payment Confirmed'

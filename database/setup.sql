@@ -12,7 +12,9 @@ create table profiles (
   role          text default 'customer'
                 check (role in ('super_admin','admin','staff','customer')),
   is_active     boolean default true,
-  created_at    timestamptz default now()
+  created_at    timestamptz default now(),
+  referral_code text unique,
+  referred_by   uuid references profiles(id)
 );
 
 -- 2. categories
@@ -133,14 +135,40 @@ insert into settings (id) values ('store') on conflict do nothing;
 -- auto create profile on signup
 create or replace function handle_new_user()
 returns trigger as $$
+declare
+  v_referrer_id uuid;
+  v_my_code text;
 begin
-  insert into profiles (id, full_name, email, role)
+  -- 1. Find referrer if code was provided in metadata
+  if (new.raw_user_meta_data->>'referral_code') is not null then
+    select id into v_referrer_id
+    from public.profiles
+    where referral_code = upper(new.raw_user_meta_data->>'referral_code');
+  end if;
+
+  -- 2. Generate unique code for the new user
+  v_my_code := upper(
+    substring(regexp_replace(new.raw_user_meta_data->>'full_name', '[^a-zA-Z]', '', 'g'), 1, 5)
+    || floor(random() * 9000 + 1000)::text
+  );
+
+  -- 3. Create the profile
+  insert into public.profiles (id, full_name, email, role, referral_code, referred_by)
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
     new.email,
-    'customer'
+    'customer',
+    v_my_code,
+    v_referrer_id
   );
+
+  -- 4. Create referral record if referred
+  if v_referrer_id is not null then
+    insert into public.referrals (referrer_id, referred_id, status)
+    values (v_referrer_id, new.id, 'pending');
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -407,7 +435,9 @@ create view public_settings as
     delivery_fee_outside, cart_expiry_days,
     payment_instructions, order_success_message,
     flash_sales_enabled, scroll_offer_enabled, 
-    scroll_offer_threshold, social_proof_enabled
+    scroll_offer_threshold, social_proof_enabled,
+    referral_enabled, referral_reward_type, 
+    referral_discount, referral_discount_type, welcome_discount
   from settings where id = 'store';
 
 -- Customer view (for logged-in customers) — includes bank details
@@ -424,6 +454,8 @@ create view customer_settings as
     payment_instructions, order_success_message,
     flash_sales_enabled, scroll_offer_enabled, 
     scroll_offer_threshold, social_proof_enabled,
+    referral_enabled, referral_reward_type, 
+    referral_discount, referral_discount_type, welcome_discount,
     -- ✅ Bank details included for paying customers
     bank_name, account_number, account_name
   from settings where id = 'store';
@@ -729,3 +761,57 @@ add column if not exists social_proof_enabled    boolean default true,
 add column if not exists scroll_offer_enabled    boolean default true,
 add column if not exists scroll_offer_threshold  integer default 8,
 add column if not exists flash_sales_enabled     boolean default true;
+
+
+
+------------------------------------------------------
+-- Referral
+------------------------------------------------------
+-- Add referral columns to profiles
+alter table profiles
+add column if not exists referral_code text unique,
+add column if not exists referred_by   uuid references profiles(id);
+
+-- Referrals tracking table
+create table referrals (
+  id              uuid primary key default gen_random_uuid(),
+  referrer_id     uuid references profiles(id) on delete cascade,
+  referred_id     uuid references profiles(id) on delete cascade,
+  status          text default 'pending'
+                  check (status in ('pending','completed','rewarded')),
+  reward_code     text,
+  created_at      timestamptz default now(),
+  unique(referred_id)
+  -- one referral per referred customer
+);
+
+alter table referrals enable row level security;
+
+create policy "Users can read own referrals"
+  on referrals for select
+  using (referrer_id = auth.uid() or referred_id = auth.uid());
+
+create policy "System can insert referrals"
+  on referrals for insert
+  with check (auth.uid() = referred_id);
+
+create policy "Admin can manage referrals"
+  on referrals for all using (is_admin());
+
+-- Add referral settings
+alter table settings
+add column if not exists referral_enabled      boolean default false,
+add column if not exists referral_reward_type  text    default 'promo',
+add column if not exists referral_discount     numeric default 10,
+add column if not exists referral_discount_type text   default 'percentage',
+add column if not exists welcome_discount      numeric default 0;
+
+-- Generate referral codes for existing customers
+-- Run this once to backfill
+update profiles
+set referral_code = upper(
+  substring(regexp_replace(full_name, '[^a-zA-Z]', '', 'g'), 1, 5)
+  || floor(random() * 9000 + 1000)::text
+)
+where referral_code is null
+  and role = 'customer';

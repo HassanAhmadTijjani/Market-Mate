@@ -84,19 +84,26 @@ export default function SocialProof({ enabled = true }) {
     useEffect(() => {
         if (!enabled || !products.length) return
 
+        let timeoutId;
+
+        function scheduleNext() {
+            const delay = Math.random() * 6000 + 8000;
+            timeoutId = setTimeout(() => {
+                showNext();
+                scheduleNext();
+            }, delay);
+        }
+
         // first notification after 6 seconds
         const firstTimer = setTimeout(() => {
-            showNext()
-            // then every 8-14 seconds
-            timerRef.current = setInterval(() => {
-                showNext()
-            }, Math.random() * 6000 + 8000)
-        }, 6000)
+            showNext();
+            scheduleNext();
+        }, 6000);
 
         return () => {
-            clearTimeout(firstTimer)
-            if (timerRef.current) clearInterval(timerRef.current)
-        }
+            clearTimeout(firstTimer);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, [products, enabled])
 
     if (!enabled || !notification || !visible) return null

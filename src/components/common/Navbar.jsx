@@ -170,7 +170,7 @@ const Navbar = () => {
                     )}
 
                     {/* Mobile — Profile link */}
-                    {user && profile?.role === 'customer' && (
+                    {/* {user && profile?.role === 'customer' && (
                         <NavLink
                             to='/profile'
                             className={linkClass}
@@ -178,8 +178,43 @@ const Navbar = () => {
                         >
                             👤 My Profile
                         </NavLink>
-                    )}
+                    )} */}
+                    {/* Profile Avatar — customer only */}
+                    <div className='flex items-center gap-2 '>
 
+                   <h2>Settings</h2>
+
+                    {user && profile?.role === 'customer' && (
+                        <button
+                            onClick={() => navigate('/profile')}
+                            className="w-10 h-10 rounded-full overflow-hidden border
+               border-primary/20 hover:border-primary transition-all
+               shrink-0"
+                            title="My Profile"
+                        > 
+                            {profile?.avatar_url ? (
+                                <img
+                                    src={profile.avatar_url}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                    /> 
+                                    
+                            ) : (
+                                <div className="w-full h-full bg-linear-to-br from-primary
+                      to-blue-400 flex items-center justify-center">
+                                    <span className="text-white font-bold text-xs">
+                                        {(profile?.full_name || user?.email || 'U')
+                                            .split(' ')
+                                            .map(w => w[0])
+                                            .join('')
+                                            .toUpperCase()
+                                            .slice(0, 2)}
+                                    </span>
+                                </div>
+                            )}
+                        </button>
+                    )}
+                    </div>
                     {user ? (<div>
                         <span>Hi, {profile?.full_name} </span>
                         <button onClick={logout} className='bg-amber-800 p-2 rounded'>Logout</button>

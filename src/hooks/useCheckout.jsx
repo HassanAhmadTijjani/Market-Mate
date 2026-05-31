@@ -2,7 +2,7 @@
 import { supabase } from '../lib/supabase'
 import { sendEmail } from '../utils/sendEmail'
 
-export function useCheckout() {
+export default function useCheckout() {
 
     async function validatePromoCode(code, orderSubtotal) {
         const { data, error } = await supabase
@@ -18,7 +18,7 @@ export function useCheckout() {
             throw new Error('This promo code has expired')
         }
 
-        if (data.max_uses && data.used_count >= data.max_uses) {
+        if (data.max_uses !== null && data.used_count >= data.max_uses) {
             throw new Error('This promo code has reached its usage limit')
         }
 
@@ -51,7 +51,7 @@ export function useCheckout() {
             discountAmount: discountAmount,
             freeDelivery: false,
         }
-      }
+    }
 
     async function placeOrder({
         userId,
@@ -116,7 +116,7 @@ export function useCheckout() {
                 p_product_id: item.product_id,
                 p_quantity: item.quantity,
             })
-          }
+        }
 
         // send admin notification email
         // await sendEmail('new_order', {
