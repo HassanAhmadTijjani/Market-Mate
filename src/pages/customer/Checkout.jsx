@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import Layout from '../../components/common/Layout'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
-import { useCheckout } from '../../hooks/useCheckout'
 import useSettings from '../../hooks/useSettings'
+import useCheckout from '../../hooks/useCheckout'
 import toast from 'react-hot-toast'
 
 
@@ -164,7 +164,13 @@ export default function Checkout() {
 
     function handleZoneChange(zone) {
         setDeliveryZone(zone.value)
-        setDeliveryFee(zone.fee)
+        
+        // ✅ Only apply the fee if a Free Delivery promo isn't already active
+        if (promoData?.discount_type === 'free_delivery') {
+            setDeliveryFee(0)
+        } else {
+            setDeliveryFee(zone.fee)
+        }
     }
 
     // SAVE SESSION
@@ -908,7 +914,7 @@ export default function Checkout() {
                 {step === 4 && confirmedOrder && (
                     <div className="text-center">
                         <div className="w-20 h-20 bg-primary-light rounded-full flex
-                            items-center justify-center text-4xl mx-auto mb-6 animate-ping">
+                            items-center justify-center text-4xl mx-auto mb-6 animate-pulse">
                             ✅
                         </div>
                         <h1 className="text-2xl font-bold text-brand-charcoal mb-2">

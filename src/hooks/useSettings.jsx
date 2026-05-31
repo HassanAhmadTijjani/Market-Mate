@@ -62,7 +62,9 @@ const useSettings = () => {
         },
         onError: (err, updates, context) => {
             // If the mutation fails, use the context we returned from onMutate to roll back
-            queryClient.setQueryData(['settings', profile?.role, user?.id], context.previousSettings);
+            if (context?.previousSettings) {
+                queryClient.setQueryData(['settings', profile?.role, user?.id], context.previousSettings);
+            }
         },
         onSettled: () => {
             // Always refetch after error or success to guarantee sync

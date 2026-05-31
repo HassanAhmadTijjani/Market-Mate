@@ -30,13 +30,13 @@ export default function ScrollOffer({ threshold = 8, enabled = true }) {
 
     // fetch a random active promo code
     async function fetchPromo() {
+        const now = new Date().toISOString()
         const { data } = await supabase
             .from('promo_codes')
             .select('code, discount_type, discount_value')
             .eq('is_active', true)
             .eq('is_system_generated', false)
-            .gt('expires_at', new Date().toISOString())
-            .or('expires_at.is.null')
+            .or("expires_at.is.null,expires_at.gt." + now)
             .limit(10)
 
         if (data && data.length > 0) {
@@ -81,10 +81,20 @@ export default function ScrollOffer({ threshold = 8, enabled = true }) {
 
     function handleCopy() {
         if (!promo) return
-        navigator.clipboard.writeText(promo.code)
-        setCopied(true)
-        toast.success('Promo code copied! Use it at checkout.')
-        setTimeout(() => setCopied(false), 3000)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(promo.code)
+                .then(() => {
+                    setCopied(true)
+                    toast.success('Promo code copied! Use it at checkout.')
+                    setTimeout(() => setCopied(false), 3000)
+                })
+                .catch((err) => {
+                    console.error('Failed to copy: ', err)
+                    toast.error('Failed to copy promo code. Please copy it manually.')
+                })
+        } else {
+            toast.error('Clipboard copy not supported on this browser. Code: ' + promo.code)
+        }
     }
 
     if (!show || !promo) return null

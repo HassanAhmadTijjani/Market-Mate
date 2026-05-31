@@ -45,14 +45,14 @@ export default function FlashSales() {
     async function handleSave() {
         if (!form.product_id) return toast.error('Select a product')
         if (!form.sale_price) return toast.error('Enter the sale price')
+        if (Number(form.sale_price) <= 0) return toast.error('Sale price must be greater than zero')
         if (!form.ends_at) return toast.error('Set an end date/time')
-
+        if (new Date(form.ends_at) <= new Date()) return toast.error('End date must be in the future')
         const selectedProduct = products.find(p => p.id === form.product_id)
         if (selectedProduct &&
             Number(form.sale_price) >= Number(selectedProduct.price)) {
             return toast.error('Sale price must be lower than original price')
         }
-
         setSaving(true)
         try {
             await createSale(form)
@@ -423,7 +423,7 @@ export default function FlashSales() {
                                 <input
                                     type="datetime-local" value={form.ends_at}
                                     onChange={e => setForm({ ...form, ends_at: e.target.value })}
-                                    min={new Date().toISOString().slice(0, 16)}
+                                    min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                                     className="w-full border border-gray-300 rounded-lg px-4 py-3
                              text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 />

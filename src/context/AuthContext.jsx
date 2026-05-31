@@ -57,12 +57,15 @@ export function AuthProvider({ children }) {
     }, [])
 
     // Creating a new User
-    const register = async (fullName, email, password) => {
+    const register = async (fullName, email, password, referralCode) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: { full_name: fullName },
+                data: {
+                    full_name: fullName,
+                    referral_code: referralCode
+                },
                 emailRedirectTo: `${window.location.origin}/login`
             }
         })
@@ -105,7 +108,7 @@ export function AuthProvider({ children }) {
             .eq('id', user.id)
             .single()
         if (data) setProfile(data)
-      }
+    }
 
     // packing all into one object, so any component in the app can eccess all of this
     const value = { user, profile, loading, refreshProfile, register, login, logout }

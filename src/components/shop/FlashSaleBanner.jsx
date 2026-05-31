@@ -7,11 +7,13 @@ function useCountdown(endTime) {
     const [expired, setExpired] = useState(false)
 
     useEffect(() => {
+        let interval;
         function calculate() {
             const diff = new Date(endTime) - new Date()
             if (diff <= 0) {
                 setExpired(true)
                 setTimeLeft('00:00:00')
+                if (interval) clearInterval(interval)
                 return
             }
             const h = Math.floor(diff / 3600000)
@@ -22,7 +24,7 @@ function useCountdown(endTime) {
             )
         }
         calculate()
-        const interval = setInterval(calculate, 1000)
+        interval = setInterval(calculate, 1000)
         return () => clearInterval(interval)
     }, [endTime])
 
@@ -39,10 +41,9 @@ function SaleBannerItem({ sale, onExpire }) {
 
     if (expired) return null
 
-    const original = Number(sale.products?.price)
-    const salePrice = Number(sale.sale_price)
-    const discountPct = Math.round(((original - salePrice) / original) * 100)
-
+    const original = Number(sale.products?.price || 0)
+    const salePrice = Number(sale.sale_price || 0)
+    const discountPct = original > 0 ? Math.round(((original - salePrice) / original) * 100) : 0
     return (
         <div
             onClick={() => navigate(`/shop/${sale.products?.slug}`)}
