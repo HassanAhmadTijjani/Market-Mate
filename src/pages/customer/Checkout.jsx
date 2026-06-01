@@ -201,7 +201,6 @@ export default function Checkout() {
         const rawPhone = settings?.store_phone || settings?.super_admin_phone || '2348143128855'
         const formattedPhone = rawPhone.replace(/\D/g, '').replace(/^0/, '234')
 
-        window.scroll(0, 0)
         return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     }
 
