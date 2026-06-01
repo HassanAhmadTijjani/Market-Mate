@@ -363,11 +363,15 @@ serve(async (req) => {
 
   try {
     // Fetch latest settings on every request to avoid stale cache
-    const { data: settingsData } = await supabase
+    const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('store_name, store_email')
       .eq('id', 'store')
       .maybeSingle()
+
+    if (settingsError) {
+      console.error('[send-email] Error fetching store settings from database:', settingsError)
+    }
 
     const settings = {
       store_name: settingsData?.store_name || 'MarketMate',
@@ -376,26 +380,34 @@ serve(async (req) => {
 
     const { type, data } = await req.json()
 
+    if (!data) {
+      throw new Error('Invalid request: payload data is required')
+    }
+
     let emailContent: { subject: string; html: string } | null = null
     let to = ''
 
     switch (type) {
       case 'new_order':
+        if (!data.order) throw new Error('Missing order object for new_order email')
         emailContent = newOrderEmail(data.order, settings)
         to = ADMIN_EMAIL!
         break
 
       case 'customer_receipt':
+        if (!data.order) throw new Error('Missing order object for customer_receipt email')
         emailContent = customerReceiptEmail(data.order, settings)
         to = data.order.customer_email
         break
 
       case 'order_status_update':
+        if (!data.order) throw new Error('Missing order object for order_status_update email')
         emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
         to = data.order.customer_email
         break
 
       case 'payment_proof':
+        if (!data.order) throw new Error('Missing order object for payment_proof email')
         emailContent = paymentProofEmail(data.order, settings)
         to = ADMIN_EMAIL!
         break
