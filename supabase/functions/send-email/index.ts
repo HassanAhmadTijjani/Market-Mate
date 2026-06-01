@@ -19,13 +19,13 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 const { data: settingsData } = await supabase
   .from('settings')
-  .select('store_name')
+  .select('store_name, store_email')
   .eq('id', 'store')
   .maybeSingle()
 
-const settings = settingsData || {
-  store_name: 'MarketMate',
-  store_email: ADMIN_EMAIL
+const settings = {
+  store_name: settingsData?.store_name || 'MarketMate',
+  store_email: settingsData?.store_email || ADMIN_EMAIL
 }
 
 // Normalize APP_URL to remove trailing slash for cleaner link construction
