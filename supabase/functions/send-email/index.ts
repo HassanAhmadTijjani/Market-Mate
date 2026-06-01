@@ -49,8 +49,13 @@ const getHostname = (url: string) => {
 
 // email templates
 function newOrderEmail(order: Order, settings: { store_name: string }) {
+  const total = order.total ?? 0;
+  const customerName = order.customer_name ?? 'Customer';
+  const customerPhone = order.customer_phone ?? 'N/A';
+  const deliveryMethod = order.delivery_method ?? 'N/A';
+
   return {
-    subject: `🛒 New Order #${order.id.slice(0, 8).toUpperCase()} — ₦${Number(order.total).toLocaleString()}`,
+    subject: `🛒 New Order #${order.id.slice(0, 8).toUpperCase()} — ₦${Number(total).toLocaleString()}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #0D0D0D; padding: 24px; text-align: center;">
@@ -61,16 +66,16 @@ function newOrderEmail(order: Order, settings: { store_name: string }) {
           <h2 style="color: #1F1F1F;">Order #${order.id.slice(0, 8).toUpperCase()}</h2>
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
             <tr><td style="padding: 8px; color: #6B7280;">Customer</td>
-                <td style="padding: 8px; font-weight: bold;">${order.customer_name}</td></tr>
+                <td style="padding: 8px; font-weight: bold;">${customerName}</td></tr>
             <tr><td style="padding: 8px; color: #6B7280;">Phone</td>
-                <td style="padding: 8px;">${order.customer_phone}</td></tr>
+                <td style="padding: 8px;">${customerPhone}</td></tr>
             <tr><td style="padding: 8px; color: #6B7280;">Method</td>
-                <td style="padding: 8px; text-transform: capitalize;">${order.delivery_method}</td></tr>
+                <td style="padding: 8px; text-transform: capitalize;">${deliveryMethod}</td></tr>
             ${order.address ? `<tr><td style="padding: 8px; color: #6B7280;">Address</td>
                 <td style="padding: 8px;">${order.address}</td></tr>` : ''}
             <tr><td style="padding: 8px; color: #6B7280;">Total</td>
                 <td style="padding: 8px; font-weight: bold; color: #16A34A; font-size: 18px;">
-                  ₦${Number(order.total).toLocaleString()}</td></tr>
+                  ₦${Number(total).toLocaleString()}</td></tr>
           </table>
           <a href="${normalizedAppUrl}/admin/orders/${order.id}"
              style="background: #16A34A; color: white; padding: 12px 24px;
@@ -88,12 +93,18 @@ function newOrderEmail(order: Order, settings: { store_name: string }) {
 }
 
 function customerReceiptEmail(order: Order, settings: { store_name: string }) {
+  const customerName = order.customer_name ?? 'Customer';
+  const total = order.total ?? 0;
+  const subtotal = order.subtotal ?? 0;
+  const discount = order.discount ?? 0;
+  const deliveryMethod = order.delivery_method ?? 'pickup';
+
   const itemsHtml = order.order_items?.map((item) => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name ?? 'Item'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity ?? 0}</td>
         <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">
-          ₦${Number(item.subtotal).toLocaleString()}
+          ₦${Number(item.subtotal ?? 0).toLocaleString()}
         </td>
       </tr>
     `).join('') || ''
@@ -107,7 +118,7 @@ function customerReceiptEmail(order: Order, settings: { store_name: string }) {
             <p style="color: #fff; margin: 8px 0 0;">Order Confirmation</p>
           </div>
           <div style="padding: 24px;">
-            <h2 style="color: #1F1F1F;">Hi ${order.customer_name}! 👋</h2>
+            <h2 style="color: #1F1F1F;">Hi ${customerName}! 👋</h2>
             <p style="color: #6B7280;">
               Thank you for your order from ${settings.store_name}. Here is your receipt.
             </p>
@@ -131,27 +142,27 @@ function customerReceiptEmail(order: Order, settings: { store_name: string }) {
             </table>
   
             <div style="border-top: 2px solid #eee; padding-top: 12px;">
-              ${order.discount > 0 ? `
+              ${discount > 0 ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <span style="color: #6B7280;">Subtotal</span>
-                  <span>₦${Number(order.subtotal).toLocaleString()}</span>
+                  <span>₦${Number(subtotal).toLocaleString()}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <span style="color: #16A34A;">Discount</span>
-                  <span style="color: #16A34A;">− ₦${Number(order.discount).toLocaleString()}</span>
+                  <span style="color: #16A34A;">− ₦${Number(discount).toLocaleString()}</span>
                 </div>
               ` : ''}
               <div style="display: flex; justify-content: space-between;
                           font-weight: bold; font-size: 18px;">
                 <span>Total</span>
-                <span style="color: #16A34A;">₦${Number(order.total).toLocaleString()}</span>
+                <span style="color: #16A34A;">₦${Number(total).toLocaleString()}</span>
               </div>
             </div>
   
             <div style="background: #DCFCE7; border-radius: 8px; padding: 16px; margin-top: 16px;">
               <p style="margin: 0; color: #15803D; font-weight: bold;">What happens next?</p>
               <p style="margin: 8px 0 0; color: #15803D; font-size: 14px;">
-                ${order.delivery_method === 'delivery'
+                ${deliveryMethod === 'delivery'
         ? '🚚 Our team will contact you to arrange delivery.'
         : '🏪 We will notify you when your order is ready for pickup.'
       }
@@ -201,6 +212,7 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
   }
 
   const info = statusMessages[newStatus] || statusMessages.pending
+  const total = order.total ?? 0;
 
   return {
     subject: `${info.emoji} Order Update — #${order.id.slice(0, 8).toUpperCase()} is ${newStatus}`,
@@ -232,7 +244,7 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
               <div style="display: flex; justify-content: space-between;">
                 <span style="color: #6B7280;">Total</span>
                 <span style="font-weight: bold;">
-                  ₦${Number(order.total).toLocaleString()}
+                  ₦${Number(total).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -254,6 +266,10 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
 }
 
 function paymentProofEmail(order: Order, settings: { store_name: string }) {
+  const customerName = order.customer_name ?? 'Customer';
+  const customerPhone = order.customer_phone ?? 'N/A';
+  const total = order.total ?? 0;
+
   return {
     subject: `💳 Payment Proof Received — Order #${order.id.slice(0, 8).toUpperCase()}`,
     html: `
@@ -265,18 +281,18 @@ function paymentProofEmail(order: Order, settings: { store_name: string }) {
           <div style="padding: 24px;">
             <h2 style="color: #1F1F1F;">Payment Proof Uploaded</h2>
             <p style="color: #6B7280;">
-              ${order.customer_name} has uploaded a payment proof for order
+              ${customerName} has uploaded a payment proof for order
               #${order.id.slice(0, 8).toUpperCase()}.
               Please review and confirm the payment.
             </p>
             <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
               <tr><td style="padding: 8px; color: #6B7280;">Customer</td>
-                  <td style="padding: 8px; font-weight: bold;">${order.customer_name}</td></tr>
+                  <td style="padding: 8px; font-weight: bold;">${customerName}</td></tr>
               <tr><td style="padding: 8px; color: #6B7280;">Phone</td>
-                  <td style="padding: 8px;">${order.customer_phone}</td></tr>
+                  <td style="padding: 8px;">${customerPhone}</td></tr>
               <tr><td style="padding: 8px; color: #6B7280;">Amount</td>
                   <td style="padding: 8px; font-weight: bold; color: #16A34A;">
-                    ₦${Number(order.total).toLocaleString()}</td></tr>
+                    ₦${Number(total).toLocaleString()}</td></tr>
             </table>
             <a href="${normalizedAppUrl}/admin/orders/${order.id}"
                style="background: #16A34A; color: white; padding: 12px 24px;
@@ -337,7 +353,7 @@ async function sendEmailViaResend(to: string, subject: string, html: string, set
     },
     body: JSON.stringify({
       from: `${settings.store_name} <orders@${getHostname(APP_URL)}>`,
-      to: [to],
+      to: ["hassanahmadtijjani26@gmail.com"],
       reply_to: settings.store_email || ADMIN_EMAIL,
       subject: subject,
       html: html,
@@ -395,10 +411,6 @@ serve(async (req) => {
       case 'new_order':
         if (!data.order) throw new Error('Missing order object for new_order email')
         if (!data.order.id) throw new Error('Missing order ID for new_order email')
-        data.order.customer_name = data.order.customer_name || 'Customer'
-        data.order.customer_phone = data.order.customer_phone || 'N/A'
-        data.order.delivery_method = data.order.delivery_method || 'N/A'
-        data.order.total = data.order.total || 0
 
         emailContent = newOrderEmail(data.order, settings)
         to = ADMIN_EMAIL!
@@ -409,11 +421,6 @@ serve(async (req) => {
         if (!data.order.id) throw new Error('Missing order ID for customer_receipt email')
         if (!data.order.customer_email) throw new Error('Missing customer email for customer_receipt email')
 
-        data.order.customer_name = data.order.customer_name || 'Customer'
-        data.order.total = data.order.total || 0
-        data.order.subtotal = data.order.subtotal || 0
-        data.order.discount = data.order.discount || 0
-
         emailContent = customerReceiptEmail(data.order, settings)
         to = data.order.customer_email
         break
@@ -423,8 +430,6 @@ serve(async (req) => {
         if (!data.order.id) throw new Error('Missing order ID for order_status_update email')
         if (!data.order.customer_email) throw new Error('Missing customer email for order_status_update email')
 
-        data.order.total = data.order.total || 0
-
         emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
         to = data.order.customer_email
         break
@@ -432,10 +437,6 @@ serve(async (req) => {
       case 'payment_proof':
         if (!data.order) throw new Error('Missing order object for payment_proof email')
         if (!data.order.id) throw new Error('Missing order ID for payment_proof email')
-
-        data.order.customer_name = data.order.customer_name || 'Customer'
-        data.order.customer_phone = data.order.customer_phone || 'N/A'
-        data.order.total = data.order.total || 0
 
         emailContent = paymentProofEmail(data.order, settings)
         to = ADMIN_EMAIL!
