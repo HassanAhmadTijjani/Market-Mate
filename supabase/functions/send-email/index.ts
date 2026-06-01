@@ -17,17 +17,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
-const { data: settingsData } = await supabase
-  .from('settings')
-  .select('store_name, store_email')
-  .eq('id', 'store')
-  .maybeSingle()
-
-const settings = {
-  store_name: settingsData?.store_name || 'MarketMate',
-  store_email: settingsData?.store_email || ADMIN_EMAIL
-}
-
 // Normalize APP_URL to remove trailing slash for cleaner link construction
 const normalizedAppUrl = APP_URL.replace(/\/$/, '')
 
@@ -59,7 +48,7 @@ const getHostname = (url: string) => {
 }
 
 // email templates
-function newOrderEmail(order: Order) {
+function newOrderEmail(order: Order, settings: { store_name: string }) {
   return {
     subject: `🛒 New Order #${order.id.slice(0, 8).toUpperCase()} — ₦${Number(order.total).toLocaleString()}`,
     html: `
@@ -98,7 +87,7 @@ function newOrderEmail(order: Order) {
   }
 }
 
-function customerReceiptEmail(order: Order) {
+function customerReceiptEmail(order: Order, settings: { store_name: string }) {
   const itemsHtml = order.order_items?.map((item) => `
       <tr>
         <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
@@ -187,7 +176,7 @@ function customerReceiptEmail(order: Order) {
   }
 }
 
-function orderStatusEmail(order: Order, newStatus: string) {
+function orderStatusEmail(order: Order, newStatus: string, settings: { store_name: string }) {
   const statusMessages: Record<string, any> = {
     processing: {
       emoji: '⚙️', title: 'Order is Being Processed',
@@ -264,7 +253,7 @@ function orderStatusEmail(order: Order, newStatus: string) {
   }
 }
 
-function paymentProofEmail(order: Order) {
+function paymentProofEmail(order: Order, settings: { store_name: string }) {
   return {
     subject: `💳 Payment Proof Received — Order #${order.id.slice(0, 8).toUpperCase()}`,
     html: `
@@ -339,7 +328,7 @@ function paymentProofEmail(order: Order) {
 
 
 // ✅ FIXED: Renamed to avoid recursion
-async function sendEmailViaResend(to: string, subject: string, html: string) {
+async function sendEmailViaResend(to: string, subject: string, html: string, settings: { store_name: string; store_email?: string }) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -373,6 +362,18 @@ serve(async (req) => {
   }
 
   try {
+    // Fetch latest settings on every request to avoid stale cache
+    const { data: settingsData } = await supabase
+      .from('settings')
+      .select('store_name, store_email')
+      .eq('id', 'store')
+      .maybeSingle()
+
+    const settings = {
+      store_name: settingsData?.store_name || 'MarketMate',
+      store_email: settingsData?.store_email || ADMIN_EMAIL
+    }
+
     const { type, data } = await req.json()
 
     let emailContent: { subject: string; html: string } | null = null
@@ -380,22 +381,22 @@ serve(async (req) => {
 
     switch (type) {
       case 'new_order':
-        emailContent = newOrderEmail(data.order)
+        emailContent = newOrderEmail(data.order, settings)
         to = ADMIN_EMAIL!
         break
 
       case 'customer_receipt':
-        emailContent = customerReceiptEmail(data.order)
+        emailContent = customerReceiptEmail(data.order, settings)
         to = data.order.customer_email
         break
 
       case 'order_status_update':
-        emailContent = orderStatusEmail(data.order, data.newStatus || 'pending')
+        emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
         to = data.order.customer_email
         break
 
       case 'payment_proof':
-        emailContent = paymentProofEmail(data.order)
+        emailContent = paymentProofEmail(data.order, settings)
         to = ADMIN_EMAIL!
         break
 
@@ -408,7 +409,7 @@ serve(async (req) => {
     }
 
     // ✅ Call the renamed function
-    await sendEmailViaResend(to, emailContent.subject, emailContent.html)
+    await sendEmailViaResend(to, emailContent.subject, emailContent.html, settings)
 
     return new Response(
       JSON.stringify({ success: true }),
