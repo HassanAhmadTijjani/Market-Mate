@@ -141,8 +141,34 @@ const Shop = () => {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="flex flex-col lg:flex-row gap-8">
 
-                    {/* SIDEBAR FILTERS (Desktop) */}
-                    <aside className={`lg:w-64 space-y-8 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}>
+                    {/* MOBILE OVERLAY BACKDROP */}
+                    <AnimatePresence>
+                        {isFilterOpen && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsFilterOpen(false)}
+                                className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {/* SIDEBAR FILTERS - Mobile Drawer & Desktop Sticky */}
+                    <aside className={`
+                        ${isFilterOpen
+                            ? 'fixed inset-y-0 left-0 z-50 w-[280px] bg-white p-6 shadow-2xl overflow-y-auto block'
+                            : 'hidden lg:block'} 
+                        lg:relative lg:inset-auto lg:z-auto lg:w-64 lg:sticky lg:top-28 lg:h-fit lg:bg-transparent lg:p-0 lg:shadow-none space-y-8
+                    `}>
+                        {/* Mobile Drawer Header */}
+                        <div className="flex items-center justify-between lg:hidden mb-6">
+                            <h2 className="text-lg font-black text-slate-900">Filters</h2>
+                            <button onClick={() => setIsFilterOpen(false)} className="p-2 bg-slate-100 rounded-xl text-slate-500 hover:text-primary transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
                         {/* Category Group */}
                         <div>
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Categories</h3>
