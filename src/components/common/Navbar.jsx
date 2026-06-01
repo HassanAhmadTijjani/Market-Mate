@@ -203,12 +203,13 @@ const Navbar = () => {
                                 <div className="w-full h-full bg-linear-to-br from-primary
                       to-blue-400 flex items-center justify-center">
                                     <span className="text-white font-bold text-xs">
-                                        {(profile?.full_name || user?.email || 'U')
-                                            .split(' ')
-                                            .map(w => w[0])
-                                            .join('')
-                                            .toUpperCase()
-                                            .slice(0, 2)}
+                                                {(profile?.full_name || user?.email || 'U')
+                                                    .trim()
+                                                    .split(/\s+/)
+                                                    .map(w => w[0])
+                                                    .join('')
+                                                    .toUpperCase()
+                                                    .slice(0, 2)}
                                     </span>
                                 </div>
                             )}

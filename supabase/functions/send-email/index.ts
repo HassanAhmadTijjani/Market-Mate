@@ -1,9 +1,11 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import useSettings from '../../../src/hooks/useSettings'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
-const APP_URL = Deno.env.get('APP_URL') || 'https://mayorhub.ng'
+const APP_URL = Deno.env.get('APP_URL') || 'https://marketmate.innovatorshub.com.ng'
+const { settings } = useSettings()
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -29,7 +31,7 @@ interface Order {
 
 const getHostname = (url: string) => {
     try { return new URL(url).hostname; }
-    catch { return 'mayorhub.ng'; }
+    catch { return 'marketmate.innovatorshub.com.ng'; }
 }
 
 // email templates
@@ -39,7 +41,7 @@ function newOrderEmail(order: Order) {
         html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-          <h1 style="color: #16A34A; margin: 0;">MayorHub</h1>
+          <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
           <p style="color: #fff; margin: 8px 0 0;">New Order Received</p>
         </div>
         <div style="padding: 24px; background: #f9f9f9;">
@@ -65,7 +67,7 @@ function newOrderEmail(order: Order) {
           </a>
         </div>
         <div style="padding: 16px; text-align: center; color: #6B7280; font-size: 12px;">
-          MayorHub Admin Notification
+          ${settings?.store_name} Admin Notification
         </div>
       </div>
     `
@@ -88,7 +90,7 @@ function customerReceiptEmail(order: Order) {
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">MayorHub</h1>
+            <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
             <p style="color: #fff; margin: 8px 0 0;">Order Confirmation</p>
           </div>
           <div style="padding: 24px;">
@@ -154,7 +156,7 @@ function customerReceiptEmail(order: Order) {
           </div>
           <div style="padding: 16px; text-align: center; color: #6B7280; font-size: 12px;
                       border-top: 1px solid #eee;">
-            MayorHub • ${getHostname(APP_URL)}
+            ${settings?.store_name} • ${getHostname(APP_URL)}
           </div>
         </div>
       `
@@ -192,7 +194,7 @@ function orderStatusEmail(order: Order, newStatus: string) {
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">MayorHub</h1>
+            <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
             <p style="color: #fff; margin: 8px 0 0;">Order Status Update</p>
           </div>
           <div style="padding: 24px; text-align: center;">
@@ -231,7 +233,7 @@ function orderStatusEmail(order: Order, newStatus: string) {
           </div>
           <div style="padding: 16px; text-align: center; color: #6B7280;
                       font-size: 12px; border-top: 1px solid #eee;">
-            MayorHub • ${getHostname(APP_URL)}
+            ${settings?.store_name} • ${getHostname(APP_URL)}
           </div>
         </div>
       `
@@ -244,7 +246,7 @@ function paymentProofEmail(order: Order) {
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">MayorHub</h1>
+            <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
             <p style="color: #fff; margin: 8px 0 0;">Payment Proof Received</p>
           </div>
           <div style="padding: 24px;">
@@ -281,7 +283,7 @@ function paymentProofEmail(order: Order) {
 //         html: `
 //         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
 //           <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-//             <h1 style="color: #16A34A; margin: 0;">MayorHub</h1>
+//             <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
 //             <p style="color: #fff; margin: 8px 0 0;">New Customer</p>
 //           </div>
 //           <div style="padding: 24px;">
@@ -321,7 +323,7 @@ async function sendEmailViaResend(to: string, subject: string, html: string) {
             'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-            from: 'MayorHub <orders@mayorhub.ng>',
+            from: `${settings?.store_name} <orders@${settings?.store_name}.ng>`,
             to: [to],
             subject: subject,
             html: html,

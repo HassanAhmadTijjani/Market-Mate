@@ -32,6 +32,7 @@ export default function Settings() {
         facebook_url: '', business_hours: '',
         referral_enabled: false, referral_reward_type: 'promo',
         referral_discount: 10, referral_discount_type: 'percentage',
+        randomize_products: false,
         welcome_discount: 0,
     })
 
@@ -72,6 +73,7 @@ export default function Settings() {
                 referral_reward_type: settings.referral_reward_type || 'promo',
                 referral_discount: settings.referral_discount || 10,
                 referral_discount_type: settings.referral_discount_type || 'percentage',
+                randomize_products: settings.randomize_products || false,
                 welcome_discount: settings.welcome_discount || 0,
             })
         }
@@ -524,6 +526,24 @@ export default function Settings() {
                                     <p className="text-xs text-neutral-slate mt-1">
                                         Default low stock warning threshold for new products
                                     </p>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                    <div>
+                                        <label className="block text-sm font-medium text-brand-charcoal">
+                                            Shuffle Products Daily
+                                        </label>
+                                        <p className="text-xs text-neutral-slate mt-1">
+                                            Automatically change product order every 24 hours to keep the store feeling fresh.
+                                        </p>
+                                    </div>
+                                    <button type="button"
+                                        onClick={() => setForm(f => ({ ...f, randomize_products: !f.randomize_products }))}
+                                        className={`relative w-12 h-6 rounded-full transition-all
+                                            ${form.randomize_products ? 'bg-primary' : 'bg-gray-200'}`}>
+                                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all
+                                            ${form.randomize_products ? 'left-6' : 'left-0.5'}`} />
+                                    </button>
                                 </div>
                             </div>
 

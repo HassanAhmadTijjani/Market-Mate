@@ -22,6 +22,7 @@ duration-300 cursor-pointer overflow-hidden group"
             <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                 {product.cover_image ? (
                     <img
+                        loading='lazy'
                         src={product.cover_image}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -58,7 +59,7 @@ duration-300 cursor-pointer overflow-hidden group"
                 </h3>
 
                 {/* Star Rating */}
-                {product.avg_rating && (
+                {/* {product.avg_rating && (
                     <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map(s => (
                             <span key={s}
@@ -74,7 +75,7 @@ duration-300 cursor-pointer overflow-hidden group"
                             ({product.review_count || 0})
                         </span>
                     </div>
-                )}
+                )} */}
 
                 {/* Price & Button */}
                 <div className="flex justify-between">

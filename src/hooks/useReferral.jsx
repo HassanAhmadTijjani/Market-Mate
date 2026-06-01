@@ -2,58 +2,6 @@ import { supabase } from '../lib/supabase'
 
 export function useReferral() {
 
-    // generate a unique referral code for a new customer
-    function generateReferralCode(fullName) {
-        const namepart = (fullName || 'USER')
-            .replace(/[^a-zA-Z]/g, '')
-            .toUpperCase()
-            .slice(0, 5)
-            .padEnd(3, 'X')
-        const numpart = Math.floor(Math.random() * 9000 + 1000)
-        return `${namepart}${numpart}`
-    }
-
-    // save referral code to new user's profile + create referral record
-    async function handleSignupWithReferral(userId, fullName, refCode) {
-        // 1. generate this user's own referral code
-        const myCode = generateReferralCode(fullName)
-
-        // 2. if they came via a referral link find the referrer
-        let referrerId = null
-        if (refCode) {
-            const { data: referrer } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('referral_code', refCode.toUpperCase())
-                .maybeSingle()
-
-            if (referrer && referrer.id !== userId) {
-                referrerId = referrer.id
-            }
-        }
-
-        // 3. update their profile with referral code + who referred them
-        await supabase
-            .from('profiles')
-            .update({
-                referral_code: myCode,
-                referred_by: referrerId,
-            })
-            .eq('id', userId)
-
-        // 4. create referral record
-        if (referrerId) {
-            await supabase
-                .from('referrals')
-                .insert({
-                    referrer_id: referrerId,
-                    referred_id: userId,
-                    status: 'pending',
-                })
-                .single()
-        }
-    }
-
     // called when an order is marked as delivered
     // checks if the customer was referred and rewards the referrer
     async function processReferralReward(customerId) {
@@ -95,13 +43,14 @@ export function useReferral() {
 
         if (!settings) return
 
-        // 1. generate unique reward promo code
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // removed confusing chars like 0, O, I, 1
-        const randomStr = Array.from({ length: 5 }, () => 
-            chars[Math.floor(Math.random() * chars.length)]
-        ).join('')
-        
-        const rewardCode = `REFR-${randomStr}`
+        // 1. generate unique reward promo code (e.g. REFR-XJ8K2)
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let randomStr = '';
+        for (let i = 0; i < 5; i++) {
+            randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        const rewardCode = `REFR-${randomStr}`;
 
         const discountType = settings.referral_reward_type === 'free_delivery'
             ? 'free_delivery'
@@ -123,7 +72,7 @@ export function useReferral() {
                 is_active: true,
                 is_system_generated: true,
                 generated_for: profile.referred_by,
-                expires_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+                expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
                     .toISOString(), // 90 days
             })
 
@@ -161,8 +110,6 @@ export function useReferral() {
     }
 
     return {
-        generateReferralCode,
-        handleSignupWithReferral,
         processReferralReward,
         fetchMyReferrals,
         fetchMyRewards,

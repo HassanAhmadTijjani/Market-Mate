@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useReferral } from '../../hooks/useReferral'
 import useSettings from '../../hooks/useSettings'
 
 const Register = () => {
@@ -10,7 +9,6 @@ const Register = () => {
     const navigate = useNavigate()
     const { settings } = useSettings()
     const [searchParams] = useSearchParams()
-    const { handleSignupWithReferral } = useReferral()
 
     // ✅ read ref code from URL e.g. /register?ref=CHIDI4821
     const refCode = searchParams.get('ref') || ''

@@ -14,7 +14,7 @@ create table profiles (
   is_active     boolean default true,
   created_at    timestamptz default now(),
   referral_code text unique,
-  referred_by   uuid references profiles(id)
+  referred_by   uuid references profiles(id) on delete set null
 );
 
 -- 2. categories
@@ -72,7 +72,7 @@ create table promo_codes (
 -- 6. orders
 create table orders (
   id               uuid primary key default gen_random_uuid(),
-  customer_id      uuid references profiles(id),
+  customer_id      uuid references profiles(id) on delete set null,
   customer_name    text,
   customer_email   text,
   customer_phone   text,
@@ -203,7 +203,7 @@ returns boolean as $$
     where id = auth.uid()
     and role in ('super_admin', 'admin')
   );
-$$ language sql security definer stable;
+$$ language sql security definer stable set search_path = public;
 
 -- ── RLS POLICIES ─────────────────────────────
 
@@ -485,7 +485,29 @@ begin
   where id = p_product_id
     and stock >= p_quantity;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
+
+-- Function to get products in a randomized order using a seed
+-- This allows for consistent pagination while keeping the "fresh" feel
+create or replace function get_randomized_products(p_seed text, p_limit int default 20, p_offset int default 0)
+returns setof products as $$
+begin
+  -- Set the seed for the random number generator
+  -- We convert the text seed to a float between 0 and 1
+  perform setseed(abs(hashtext(p_seed))::double precision / 2147483647);
+  
+  return query
+  select *
+  from products
+  where is_active = true
+  order by random()
+  limit p_limit
+  offset p_offset;
+end;
+$$ language plpgsql security definer stable;
+
+-- Grant access to the function
+grant execute on function get_randomized_products to anon, authenticated;
 
 -- Grant customers permission to call this function only
 grant execute on function reduce_product_stock to authenticated;
@@ -550,7 +572,7 @@ create policy "Users can update own avatar"
   -- Update promo_codes table with missing columns
 alter table promo_codes
 add column if not exists is_system_generated boolean default false,
-add column if not exists generated_for       uuid references profiles(id),
+add column if not exists generated_for       uuid references profiles(id) on delete cascade,
 add column if not exists description         text default '';
 
 -- Update the discount_type check to include free_delivery
@@ -618,9 +640,25 @@ BEGIN
         WHERE id = p_order_id;
     END IF;
 END;
-$$;
+$$ set search_path = public;
 
 GRANT EXECUTE ON FUNCTION handle_order_promo(UUID) TO authenticated;
+
+-- Create trigger function to automate promo usage tracking
+CREATE OR REPLACE FUNCTION public.trigger_handle_promo()
+RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM handle_order_promo(NEW.id);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER set search_path = public;
+
+-- Create trigger on orders table
+DROP TRIGGER IF EXISTS on_order_status_change_promo ON public.orders;
+CREATE TRIGGER on_order_status_change_promo
+AFTER INSERT OR UPDATE ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION public.trigger_handle_promo();
 
 
 
@@ -670,7 +708,7 @@ returns table(avg_rating numeric, review_count bigint) as $$
   from reviews
   where product_id = p_product_id
     and is_approved = true;
-$$ language sql stable;
+$$ language sql stable set search_path = public;
 
 -- Add avg_rating and review_count to products view
 -- We'll calculate this in the frontend for simplicity
@@ -760,7 +798,8 @@ alter table settings
 add column if not exists social_proof_enabled    boolean default true,
 add column if not exists scroll_offer_enabled    boolean default true,
 add column if not exists scroll_offer_threshold  integer default 8,
-add column if not exists flash_sales_enabled     boolean default true;
+add column if not exists flash_sales_enabled     boolean default true,
+add column if not exists randomize_products      boolean default false;
 
 
 
@@ -770,7 +809,7 @@ add column if not exists flash_sales_enabled     boolean default true;
 -- Add referral columns to profiles
 alter table profiles
 add column if not exists referral_code text unique,
-add column if not exists referred_by   uuid references profiles(id);
+add column if not exists referred_by   uuid references profiles(id) on delete set null;
 
 -- Referrals tracking table
 create table referrals (
