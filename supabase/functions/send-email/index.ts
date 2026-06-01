@@ -27,14 +27,14 @@ const corsHeaders = {
 
 interface Order {
   id: string;
-  total: number;
-  customer_name: string;
-  customer_phone: string;
+  total?: number | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
   customer_email: string;
-  delivery_method: string;
+  delivery_method?: string | null;
   address?: string;
-  subtotal: number;
-  discount: number;
+  subtotal?: number | null;
+  discount?: number | null;
   order_items?: Array<{
     name: string;
     quantity: number;
@@ -395,14 +395,25 @@ serve(async (req) => {
       case 'new_order':
         if (!data.order) throw new Error('Missing order object for new_order email')
         if (!data.order.id) throw new Error('Missing order ID for new_order email')
+        data.order.customer_name = data.order.customer_name || 'Customer'
+        data.order.customer_phone = data.order.customer_phone || 'N/A'
+        data.order.delivery_method = data.order.delivery_method || 'N/A'
+        data.order.total = data.order.total || 0
+
         emailContent = newOrderEmail(data.order, settings)
-        to = ADMIN_EMAIL
+        to = ADMIN_EMAIL!
         break
 
       case 'customer_receipt':
         if (!data.order) throw new Error('Missing order object for customer_receipt email')
         if (!data.order.id) throw new Error('Missing order ID for customer_receipt email')
         if (!data.order.customer_email) throw new Error('Missing customer email for customer_receipt email')
+
+        data.order.customer_name = data.order.customer_name || 'Customer'
+        data.order.total = data.order.total || 0
+        data.order.subtotal = data.order.subtotal || 0
+        data.order.discount = data.order.discount || 0
+
         emailContent = customerReceiptEmail(data.order, settings)
         to = data.order.customer_email
         break
@@ -411,6 +422,9 @@ serve(async (req) => {
         if (!data.order) throw new Error('Missing order object for order_status_update email')
         if (!data.order.id) throw new Error('Missing order ID for order_status_update email')
         if (!data.order.customer_email) throw new Error('Missing customer email for order_status_update email')
+
+        data.order.total = data.order.total || 0
+
         emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
         to = data.order.customer_email
         break
@@ -418,8 +432,13 @@ serve(async (req) => {
       case 'payment_proof':
         if (!data.order) throw new Error('Missing order object for payment_proof email')
         if (!data.order.id) throw new Error('Missing order ID for payment_proof email')
+
+        data.order.customer_name = data.order.customer_name || 'Customer'
+        data.order.customer_phone = data.order.customer_phone || 'N/A'
+        data.order.total = data.order.total || 0
+
         emailContent = paymentProofEmail(data.order, settings)
-        to = ADMIN_EMAIL
+        to = ADMIN_EMAIL!
         break
 
       default:
