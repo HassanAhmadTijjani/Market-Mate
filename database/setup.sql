@@ -1,5 +1,5 @@
 -- =============================================
--- MayorHub E-Commerce System — Full DB Setup
+-- MarketMate E-Commerce System — Full DB Setup
 -- Run this on any new client's Supabase project
 -- =============================================
 
