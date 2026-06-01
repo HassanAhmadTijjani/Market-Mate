@@ -44,6 +44,11 @@ serve(async (req) => {
 
         const { fullName, email, password, phone, role } = await req.json()
 
+        // Input Validation
+        if (!fullName || !email || !password) {
+            throw new Error('Full name, email, and password are required')
+        }
+
         // create the auth user
         const { data: newUser, error: createError } =
             await supabaseAdmin.auth.admin.createUser({
@@ -55,15 +60,8 @@ serve(async (req) => {
 
         if (createError) throw createError
 
-        // update their profile with the correct role
-        // const { error: profileError } = await supabaseAdmin
-        //     .from('profiles')
-        //     .update({
-        //         full_name: fullName,
-        //         phone: phone || '',
-        //         role: role || 'staff',
-            //     })
-        const { error: profileError } = await supabaseAdmin
+        // upsert profile with explicit schema and search path safety
+        const { error: profileError } = await supabaseAdmin.schema('public')
             .from('profiles')
             .upsert({
                 id: newUser.user.id,
@@ -73,7 +71,6 @@ serve(async (req) => {
                 role: role || 'staff',
                 is_active: true,
             })
-            .eq('id', newUser.user.id)
 
         if (profileError) throw profileError
 

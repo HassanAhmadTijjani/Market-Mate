@@ -30,7 +30,7 @@ serve(async (req) => {
 
         if (authError || !user) throw new Error('Unauthorized')
 
-        const { data: callerProfile } = await supabaseAdmin
+        const { data: callerProfile } = await supabaseAdmin.schema('public')
             .from('profiles')
             .select('role')
             .eq('id', user.id)
@@ -43,6 +43,11 @@ serve(async (req) => {
         const { staffId } = await req.json()
 
         if (!staffId) throw new Error('Staff ID is required')
+
+        // Safety: Prevent self-deletion
+        if (staffId === user.id) {
+            throw new Error('You cannot delete your own account')
+        }
 
         // delete from auth.users — this cascades to profiles automatically
         const { error: deleteError } = await supabaseAdmin
