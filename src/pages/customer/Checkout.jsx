@@ -164,7 +164,7 @@ export default function Checkout() {
 
     function handleZoneChange(zone) {
         setDeliveryZone(zone.value)
-        
+
         // ✅ Only apply the fee if a Free Delivery promo isn't already active
         if (promoData?.discount_type === 'free_delivery') {
             setDeliveryFee(0)
@@ -188,19 +188,19 @@ export default function Checkout() {
         }
     }, [step, deliveryMethod, form, promoData,
         discount, confirmedOrder, pendingOrderId])
-        
-        // WHATSAPP LINK
-        function getWhatsAppUrl() {
-            const productsList = cartItems
+
+    // WHATSAPP LINK
+    function getWhatsAppUrl() {
+        const productsList = cartItems
             .map(item => `- ${item.products?.name} x${item.quantity}`)
             .join('\n')
 
-        const storeName = settings?.store_name || 'MayorHub'
+        const storeName = settings?.store_name || 'MarketMate'
         const message = `Hello ${storeName}\n\nI want to place an order.\n\nName: ${form.name}\n\nProducts:\n${productsList}\n\nTotal: ₦${finalTotal.toLocaleString()}\n\nDelivery: ${deliveryMethod}`
 
         const rawPhone = settings?.store_phone || settings?.super_admin_phone || '2348143128855'
         const formattedPhone = rawPhone.replace(/\D/g, '').replace(/^0/, '234')
-        
+
         window.scroll(0, 0)
         return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
     }
@@ -257,19 +257,19 @@ export default function Checkout() {
         } finally {
             setPromoLoading(false)
         }
-      }
+    }
 
-      function handleRemovePromo() {
+    function handleRemovePromo() {
         // if it was a free delivery promo restore the zone fee
         if (promoData?.discount_type === 'free_delivery' && deliveryZone) {
-          const zone = DELIVERY_ZONES.find(z => z.value === deliveryZone)
-          if (zone) setDeliveryFee(zone.fee)
+            const zone = DELIVERY_ZONES.find(z => z.value === deliveryZone)
+            if (zone) setDeliveryFee(zone.fee)
         }
         setPromoInput('')
         setPromoData(null)
         setPromoError('')
         setDiscount(0)
-      }
+    }
 
     // STEP 1 VALIDATION
     function handleStep1Next() {

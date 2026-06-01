@@ -17,7 +17,7 @@ const OrderReceipt = forwardRef(({ order, settings }, ref) => {
             {/* Store Header */}
             <div className="text-center mb-6">
                 <h1 className="text-xl font-bold text-black uppercase tracking-wider">
-                    {settings?.store_name || 'MayorHub'}
+                    {settings?.store_name || 'MarketMate'}
                 </h1>
                 {settings?.store_address && (
                     <p className="text-xs text-gray-600 mt-1">

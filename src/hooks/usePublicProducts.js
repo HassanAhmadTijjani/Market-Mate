@@ -31,7 +31,7 @@ const usePublicProducts = () => {
             if (error) throw error
 
             // Review stats logic...
-            const productIds = data.map(p => p.id)
+            const productIds = data?.map(p => p.id) || []
             if (productIds.length === 0) return []
 
             const { data: reviewData } = await supabase.from('reviews').select('product_id, rating').in('product_id', productIds).eq('is_approved', true)

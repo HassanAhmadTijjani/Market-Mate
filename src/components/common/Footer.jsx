@@ -26,7 +26,7 @@ function Footer() {
                             The best online shopping place for all kind of gadget and accessories.
                         </p>
                         <div className="flex gap-3 mt-6">
-                            {['M', 'A', 'Y', 'OR'].map((s) => (
+                            {['M', 'A', 'T', 'E'].map((s) => (
                                 <div key={s}
                                     className="w-9 h-9 rounded-lg bg-brand-charcoal flex items-center justify-center text-gray-400 text-xs font-bold hover:bg-primary hover:text-white transition-all cursor-pointer">
                                     {s}
@@ -77,12 +77,12 @@ function Footer() {
                         © 2026 {settings?.store_name}. All rights reserved.
                     </p>
                     <a
-                        href="https://wa.me/2348143128855?text=Hello%20Innovators%20Hub,%20I%20saw%20the%20MayorHub%20system%20and%20I%20want%20something%20similar."
+                        href="https://wa.me/2348143128855?text=Hello%20Innovators%20Hub,%20I%20saw%20the%20MarketMate%20system%20and%20I%20want%20something%20similar."
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-gray-400 hover:text-primary transition border-l border-primary pl-2   p-2 rounded-sm"
                     >
-                        Built by MarketMate
+                        Built by Innovator Hub
                     </a>                </div>
 
             </div>
