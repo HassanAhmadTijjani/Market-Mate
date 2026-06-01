@@ -357,8 +357,12 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  if (!RESEND_API_KEY) {
-    return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not configured' }), { status: 500, headers: corsHeaders })
+  if (!RESEND_API_KEY || !ADMIN_EMAIL) {
+    const errorMsg = !RESEND_API_KEY
+      ? 'RESEND_API_KEY is not configured'
+      : 'ADMIN_EMAIL is not configured';
+
+    return new Response(JSON.stringify({ error: errorMsg }), { status: 500, headers: corsHeaders })
   }
 
   try {
@@ -390,26 +394,32 @@ serve(async (req) => {
     switch (type) {
       case 'new_order':
         if (!data.order) throw new Error('Missing order object for new_order email')
+        if (!data.order.id) throw new Error('Missing order ID for new_order email')
         emailContent = newOrderEmail(data.order, settings)
-        to = ADMIN_EMAIL!
+        to = ADMIN_EMAIL
         break
 
       case 'customer_receipt':
         if (!data.order) throw new Error('Missing order object for customer_receipt email')
+        if (!data.order.id) throw new Error('Missing order ID for customer_receipt email')
+        if (!data.order.customer_email) throw new Error('Missing customer email for customer_receipt email')
         emailContent = customerReceiptEmail(data.order, settings)
         to = data.order.customer_email
         break
 
       case 'order_status_update':
         if (!data.order) throw new Error('Missing order object for order_status_update email')
+        if (!data.order.id) throw new Error('Missing order ID for order_status_update email')
+        if (!data.order.customer_email) throw new Error('Missing customer email for order_status_update email')
         emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
         to = data.order.customer_email
         break
 
       case 'payment_proof':
         if (!data.order) throw new Error('Missing order object for payment_proof email')
+        if (!data.order.id) throw new Error('Missing order ID for payment_proof email')
         emailContent = paymentProofEmail(data.order, settings)
-        to = ADMIN_EMAIL!
+        to = ADMIN_EMAIL
         break
 
       default:
