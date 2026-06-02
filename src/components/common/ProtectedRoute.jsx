@@ -1,10 +1,11 @@
 // @ts-nocheck
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 
 export default function ProtectedRoute({ children, allowedRoles }) {
     const { user, profile, loading } = useAuth()
+    const location = useLocation()
 
     // still checking auth — show nothing yet
     if (loading) return (
@@ -14,7 +15,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     )
 
     // not logged in
-    if (!user) return <Navigate to="/login" replace />
+    if (!user) return <Navigate to="/login" state={{from: location}} replace />
 
     
     // check if account is active

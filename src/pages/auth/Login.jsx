@@ -1,14 +1,17 @@
 /* eslint-disable no-unused-vars */
 // @ts-nocheck
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import useSettings from '../../hooks/useSettings'
 
 export default function Login() {
     const { login, profile } = useAuth()
     const navigate = useNavigate()
-    const {settings} = useSettings()
+    const { settings } = useSettings()
+    const location = useLocation()
+    // Identify where the user comes from /// defaulting to home
+    const from = location.state?.from?.pathname || '/'
 
     const [form, setForm] = useState({ email: '', password: '' })
     const [error, setError] = useState('')
@@ -25,7 +28,8 @@ export default function Login() {
 
         try {
             await login(form.email, form.password)
-            // no navigate needed — App.jsx redirects automatically
+            // Redirect to the intended page (from email) or home
+            navigate(from, { replace: true })
         } catch (err) {
             setError('Invalid email or password')
         } finally {
