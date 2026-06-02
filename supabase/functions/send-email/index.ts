@@ -352,7 +352,9 @@ async function sendEmailViaResend(to: string, subject: string, html: string, set
       'Authorization': `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: `${settings.store_name} <orders@${getHostname(APP_URL)}>`,
+      // from: `${settings.store_name} <orders@${getHostname(APP_URL)}>`,
+      from: "MarketMate <support@mail.innovatorshub.com.ng>",
+
       to: ["hassanahmadtijjani26@gmail.com"],
       reply_to: settings.store_email || ADMIN_EMAIL,
       subject: subject,
