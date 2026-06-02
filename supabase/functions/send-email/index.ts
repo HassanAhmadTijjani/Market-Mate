@@ -54,13 +54,24 @@ function newOrderEmail(order: Order, settings: { store_name: string }) {
   const customerPhone = order.customer_phone ?? 'N/A';
   const deliveryMethod = order.delivery_method ?? 'N/A';
 
+  const itemsHtml = order.order_items?.map((item) => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name ?? 'Item'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity ?? 0}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">
+          ₦${Number(item.subtotal ?? 0).toLocaleString()}
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="3" style="padding: 8px; text-align: center; color: #6B7280;">No items found</td></tr>'
+
   return {
     subject: `🛒 New Order #${order.id.slice(0, 8).toUpperCase()} — ₦${Number(total).toLocaleString()}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-          <h1 style="color: #16A34A; margin: 0;">${settings.store_name}</h1>
-          <p style="color: #fff; margin: 8px 0 0;">New Order Received</p>
+        <div style="background: #1e3a8a; padding: 24px; text-align: center;">
+          <h1 style="color: #fff; margin: 0;">${settings.store_name}</h1>
+          <p style="color: #60a5fa; margin: 4px 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Home of Accessories</p>
+          <p style="color: #fff; margin: 12px 0 0; font-weight: bold;">New Order Received</p>
         </div>
         <div style="padding: 24px; background: #f9f9f9;">
           <h2 style="color: #1F1F1F;">Order #${order.id.slice(0, 8).toUpperCase()}</h2>
@@ -74,11 +85,24 @@ function newOrderEmail(order: Order, settings: { store_name: string }) {
             ${order.address ? `<tr><td style="padding: 8px; color: #6B7280;">Address</td>
                 <td style="padding: 8px;">${order.address}</td></tr>` : ''}
             <tr><td style="padding: 8px; color: #6B7280;">Total</td>
-                <td style="padding: 8px; font-weight: bold; color: #16A34A; font-size: 18px;">
+                <td style="padding: 8px; font-weight: bold; color: #16a34a; font-size: 18px;">
                   ₦${Number(total).toLocaleString()}</td></tr>
           </table>
+
+          <h3 style="color: #1F1F1F; margin: 24px 0 12px; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 8px;">Order Items</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <thead>
+              <tr style="background: #f3f4f6;">
+                <th style="padding: 8px; text-align: left; font-size: 11px; color: #6B7280; text-transform: uppercase;">Item</th>
+                <th style="padding: 8px; text-align: center; font-size: 11px; color: #6B7280; text-transform: uppercase;">Qty</th>
+                <th style="padding: 8px; text-align: right; font-size: 11px; color: #6B7280; text-transform: uppercase;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+
           <a href="${normalizedAppUrl}/admin/orders/${order.id}"
-             style="background: #16A34A; color: white; padding: 12px 24px;
+             style="background: #16a34a; color: #ffffff; padding: 12px 24px;
                     text-decoration: none; border-radius: 8px; font-weight: bold;
                     display: inline-block;">
             View Order →
@@ -107,15 +131,16 @@ function customerReceiptEmail(order: Order, settings: { store_name: string }) {
           ₦${Number(item.subtotal ?? 0).toLocaleString()}
         </td>
       </tr>
-    `).join('') || ''
+    `).join('') || '<tr><td colspan="3" style="padding: 8px; text-align: center; color: #6B7280;">No items found</td></tr>'
 
   return {
     subject: `✅ Order Confirmed — #${order.id.slice(0, 8).toUpperCase()}`,
     html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">${settings.store_name}</h1>
-            <p style="color: #fff; margin: 8px 0 0;">Order Confirmation</p>
+          <div style="background: #1e3a8a; padding: 24px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">${settings.store_name}</h1>
+            <p style="color: #60a5fa; margin: 4px 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Home of Accessories</p>
+            <p style="color: #fff; margin: 12px 0 0; font-weight: bold;">Order Confirmation</p>
           </div>
           <div style="padding: 24px;">
             <h2 style="color: #1F1F1F;">Hi ${customerName}! 👋</h2>
@@ -148,14 +173,14 @@ function customerReceiptEmail(order: Order, settings: { store_name: string }) {
                   <span>₦${Number(subtotal).toLocaleString()}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span style="color: #16A34A;">Discount</span>
-                  <span style="color: #16A34A;">− ₦${Number(discount).toLocaleString()}</span>
+                  <span style="color: #16a34a;">Discount</span>
+                  <span style="color: #16a34a;">− ₦${Number(discount).toLocaleString()}</span>
                 </div>
               ` : ''}
               <div style="display: flex; justify-content: space-between;
                           font-weight: bold; font-size: 18px;">
                 <span>Total</span>
-                <span style="color: #16A34A;">₦${Number(total).toLocaleString()}</span>
+                <span style="color: #16a34a;">₦${Number(total).toLocaleString()}</span>
               </div>
             </div>
   
@@ -171,7 +196,7 @@ function customerReceiptEmail(order: Order, settings: { store_name: string }) {
   
             <div style="text-align: center; margin-top: 24px;">
               <a href="${normalizedAppUrl}/orders/${order.id}"
-                 style="background: #16A34A; color: white; padding: 12px 24px;
+                 style="background: #1e3a8a; color: #ffffff; padding: 12px 24px;
                         text-decoration: none; border-radius: 8px; font-weight: bold;
                         display: inline-block;">
                 Track Your Order →
@@ -218,9 +243,10 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
     subject: `${info.emoji} Order Update — #${order.id.slice(0, 8).toUpperCase()} is ${newStatus}`,
     html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">${settings.store_name}</h1>
-            <p style="color: #fff; margin: 8px 0 0;">Order Status Update</p>
+          <div style="background: #1e3a8a; padding: 24px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">${settings.store_name}</h1>
+            <p style="color: #60a5fa; margin: 4px 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Home of Accessories</p>
+            <p style="color: #fff; margin: 12px 0 0; font-weight: bold;">Order Status Update</p>
           </div>
           <div style="padding: 24px; text-align: center;">
             <div style="font-size: 64px; margin-bottom: 16px;">${info.emoji}</div>
@@ -237,7 +263,7 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                 <span style="color: #6B7280;">Status</span>
-                <span style="font-weight: bold; text-transform: capitalize; color: #16A34A;">
+                <span style="font-weight: bold; text-transform: capitalize; color: #000;">
                   ${newStatus}
                 </span>
               </div>
@@ -250,7 +276,7 @@ function orderStatusEmail(order: Order, newStatus: string, settings: { store_nam
             </div>
   
             <a href="${normalizedAppUrl}/orders/${order.id}"
-               style="background: #16A34A; color: white; padding: 12px 24px;
+               style="background: #1e3a8a; color: #ffffff; padding: 12px 24px;
                       text-decoration: none; border-radius: 8px; font-weight: bold;
                       display: inline-block;">
               Track Order →
@@ -274,9 +300,10 @@ function paymentProofEmail(order: Order, settings: { store_name: string }) {
     subject: `💳 Payment Proof Received — Order #${order.id.slice(0, 8).toUpperCase()}`,
     html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-            <h1 style="color: #16A34A; margin: 0;">${settings.store_name}</h1>
-            <p style="color: #fff; margin: 8px 0 0;">Payment Proof Received</p>
+          <div style="background: #1e3a8a; padding: 24px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">${settings.store_name}</h1>
+            <p style="color: #60a5fa; margin: 4px 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Home of Accessories</p>
+            <p style="color: #fff; margin: 12px 0 0; font-weight: bold;">Payment Proof Received</p>
           </div>
           <div style="padding: 24px;">
             <h2 style="color: #1F1F1F;">Payment Proof Uploaded</h2>
@@ -291,11 +318,11 @@ function paymentProofEmail(order: Order, settings: { store_name: string }) {
               <tr><td style="padding: 8px; color: #6B7280;">Phone</td>
                   <td style="padding: 8px;">${customerPhone}</td></tr>
               <tr><td style="padding: 8px; color: #6B7280;">Amount</td>
-                  <td style="padding: 8px; font-weight: bold; color: #16A34A;">
+                  <td style="padding: 8px; font-weight: bold; color: #16a34a;">
                     ₦${Number(total).toLocaleString()}</td></tr>
             </table>
             <a href="${normalizedAppUrl}/admin/orders/${order.id}"
-               style="background: #16A34A; color: white; padding: 12px 24px;
+               style="background: #16a34a; color: #ffffff; padding: 12px 24px;
                       text-decoration: none; border-radius: 8px; font-weight: bold;
                       display: inline-block;">
               Review & Confirm Payment →
@@ -311,8 +338,8 @@ function paymentProofEmail(order: Order, settings: { store_name: string }) {
 //         subject: `👤 New Customer Registered — ${profile.full_name}`,
 //         html: `
 //         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-//           <div style="background: #0D0D0D; padding: 24px; text-align: center;">
-//             <h1 style="color: #16A34A; margin: 0;">${settings?.store_name}</h1>
+//           <div style="background: #013bb6; padding: 24px; text-align: center;">
+//             <h1 style="color: #fff; margin: 0;">${settings?.store_name}</h1>
 //             <p style="color: #fff; margin: 8px 0 0;">New Customer</p>
 //           </div>
 //           <div style="padding: 24px;">
@@ -331,7 +358,7 @@ function paymentProofEmail(order: Order, settings: { store_name: string }) {
 //                   <td style="padding: 8px;">${new Date(profile.created_at).toLocaleDateString('en-NG')}</td></tr>
 //             </table>
 //             <a href="${APP_URL}/admin/customers"
-//                style="background: #16A34A; color: white; padding: 12px 24px;
+//                style="background: #fff; color: white; padding: 12px 24px;
 //                       text-decoration: none; border-radius: 8px; font-weight: bold;
 //                       display: inline-block;">
 //               View Customers →
@@ -352,10 +379,10 @@ async function sendEmailViaResend(to: string, subject: string, html: string, set
       'Authorization': `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      // from: `${settings.store_name} <orders@${getHostname(APP_URL)}>`,
-      from: "MarketMate <support@mail.innovatorshub.com.ng>",
+      from: `${settings.store_name} <orders@mail.innovatorshub.com.ng>`,
+      // from: "MarketMate <support@mail.innovatorshub.com.ng>",
 
-      to: ["hassanahmadtijjani26@gmail.com"],
+      to: to,
       reply_to: settings.store_email || ADMIN_EMAIL,
       subject: subject,
       html: html,
@@ -400,10 +427,25 @@ serve(async (req) => {
       store_email: settingsData?.store_email || ADMIN_EMAIL
     }
 
-    const { type, data } = await req.json()
+    const payload = await req.json()
+    const { type, data } = payload
 
     if (!data) {
       throw new Error('Invalid request: payload data is required')
+    }
+
+    // 🛠️ HYDRATION: Fetch full order from DB if only an ID is provided
+    if (data.order?.id && (!data.order.customer_email || !data.order.total || !data.order.order_items)) {
+      console.log(`[send-email] Hydrating order data for ID: ${data.order.id}`)
+      const { data: dbOrder, error: dbError } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('id', data.order.id)
+        .single()
+
+      if (!dbError && dbOrder) {
+        data.order = { ...dbOrder, ...data.order }
+      }
     }
 
     let emailContent: { subject: string; html: string } | null = null
@@ -432,7 +474,8 @@ serve(async (req) => {
         if (!data.order.id) throw new Error('Missing order ID for order_status_update email')
         if (!data.order.customer_email) throw new Error('Missing customer email for order_status_update email')
 
-        emailContent = orderStatusEmail(data.order, data.newStatus || 'pending', settings)
+        const status = data.newStatus || data.order.status || 'pending'
+        emailContent = orderStatusEmail(data.order, status, settings)
         to = data.order.customer_email
         break
 
