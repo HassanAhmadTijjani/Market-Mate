@@ -14,7 +14,7 @@ const navLinks = [
   { label: 'Buy', href: '/shop' },
   { label: 'Sell', href: '#sell' },
   { label: 'Swap', href: '#swap' },
-  { label: 'Referral', href: '#referral' },
+  { label: 'Referral', href: '/login' },
 ];
 
 const coreActions = [
@@ -90,8 +90,8 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
-                Buy, Sell, Swap Products <br />
-                <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+                Start selling Products <br />
+                <span className="bg-linear-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                   Smarter &amp; Faster
                 </span>
               </h1>

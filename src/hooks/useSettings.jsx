@@ -32,7 +32,7 @@ const useSettings = () => {
             if (error) throw error;
             return data;
         },
-        staleTime: 1000 * 60 * 5, // Data stays "fresh" for 5 minutes
+        staleTime: 1000 * 60 * 1, // Data stays "fresh" for 5 minutes
         gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours (PWA ready)
     });
 
