@@ -157,9 +157,9 @@ const Shop = () => {
                     {/* SIDEBAR FILTERS - Mobile Drawer & Desktop Sticky */}
                     <aside className={`
                         ${isFilterOpen
-                            ? 'fixed inset-y-0 left-0 z-50 w-[280px] bg-white p-6 shadow-2xl overflow-y-auto block'
+                            ? 'fixed inset-y-0 left-0 z-50 w-70 bg-white p-6 shadow-2xl overflow-y-auto block'
                             : 'hidden lg:block'} 
-                        lg:relative lg:inset-auto lg:z-auto lg:w-64 lg:sticky lg:top-28 lg:h-fit lg:bg-transparent lg:p-0 lg:shadow-none space-y-8
+                        lg:relative lg:inset-auto lg:z-auto lg:w-64 lg:top-28 lg:h-fit lg:bg-transparent lg:p-0 lg:shadow-none space-y-8
                     `}>
                         {/* Mobile Drawer Header */}
                         <div className="flex items-center justify-between lg:hidden mb-6">
@@ -287,7 +287,7 @@ const Shop = () => {
                                             hidden: { opacity: 0, scale: 0.95 },
                                             visible: { opacity: 1, scale: 1 }
                                         }}
-                                        className="bg-white p-2 rounded-[32px] border border-transparent hover:border-primary/20 hover:shadow-xl transition-all duration-300"
+                                        className="bg-white p-2 rounded-4xl border border-transparent hover:border-primary/20 hover:shadow-xl transition-all duration-300"
                                     >
                                         <ProductCard product={product} />
                                     </motion.div>
