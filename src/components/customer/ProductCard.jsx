@@ -50,16 +50,16 @@ duration-300 cursor-pointer overflow-hidden group"
 
             {/* Info */}
             <div className="p-4">
-                <p className="text-xs text-neutral-slate mb-1 line-clamp-2">
+                {/* <p className="text-xs text-neutral-slate mb-1 line-clamp-2">
                     {product.description}
-                </p>
+                </p> */}
                 <h3 className="font-semibold text-brand-charcoal text-sm leading-snug
                      line-clamp-2 mb-2">
                     {product.name}
                 </h3>
 
                 {/* Star Rating */}
-                {/* {product.avg_rating && (
+                {product.avg_rating && (
                     <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map(s => (
                             <span key={s}
@@ -75,7 +75,7 @@ duration-300 cursor-pointer overflow-hidden group"
                             ({product.review_count || 0})
                         </span>
                     </div>
-                )} */}
+                )}
 
                 {/* Price & Button */}
                 <div className="flex justify-between">
