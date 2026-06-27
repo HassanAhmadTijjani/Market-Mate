@@ -60,6 +60,9 @@ export default function CustomerHome() {
         badge: settings?.hero_badge_text || "The Future of Device Commerce",
     }), [settings]);
 
+    const whatsapp = settings?.whatsapp_number || ''
+    const whatsappLink = whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '').replace(/^0/, '234')}?text=Hi Innovators Hub, I saw the MarketMate demo and I am interested in getting an online store for my business.` : null
+
     return (
         <div className="min-h-screen bg-slate-50/50">
 
@@ -95,22 +98,42 @@ export default function CustomerHome() {
                         </h1>
 
                         <p className="text-slate-400 text-lg md:text-xl mb-10 leading-relaxed max-w-xl font-medium">
-                            {config.desc}
+                            {config.desc} 
                         </p>
+
+                        {/* Demo notice */}
+                        <div className="bg-blue-500/10 border border-blue-500/30
+                rounded-xl px-5 py-4 mb-8 max-w-lg">
+                            <p className="text-blue-300 text-sm font-medium mb-1">
+                                📌 This is a demo store
+                            </p>
+                            <p className="text-gray-400 text-sm">
+                                Feel free to browse, add to cart, place test orders
+                                and track them. Any payment proof you upload is fine —
+                                this is just for you to experience the full system.
+                            </p>
+                        </div>
 
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={() => navigate('/shop')}
                                 className="bg-primary hover:bg-primary-dark text-white px-10 py-4 rounded-2xl font-bold transition-all hover:scale-105 shadow-xl shadow-primary/25 flex items-center justify-center gap-2"
                             >
-                                Start Shopping <ArrowRight className="w-5 h-5" />
+                                Explore Demo Store  <ArrowRight className="w-5 h-5" />
                             </button>
-                            <button
+                            {/* <button
                                 onClick={() => navigate('/about')}
                                 className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-10 py-4 rounded-2xl font-bold transition-all"
                             >
                                 How it works
-                            </button>
+                            </button> */}
+                         {( <a  href={whatsappLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                                className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-10 py-4 rounded-2xl font-bold transition-all"
+                            >
+                                💬<span className='text-white'> Get This For My Business</span>  
+                        </a>)}
                         </div>
                     </motion.div>
                 </div>
